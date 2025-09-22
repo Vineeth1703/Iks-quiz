@@ -373,4 +373,52 @@ function buildQuiz() {
     ).join("<br>");
     output.push(`<div class="question"><p><strong>${index+1}.</strong> ${escapeHtml(item.q.replace(/^\d+\.\s*/, ""))}</p>${optionsHtml}</div>`);
   });
-  quiz
+  quizContainer.innerHTML = output.join("\n");
+}
+
+// Show results and highlight correct/wrong (basic)
+function showResults() {
+  let score = 0;
+  quizData.forEach((item, index) => {
+    const selector = `input[name="q${index}"]:checked`;
+    const selected = document.querySelector(selector);
+    const qDiv = quizContainer.children[index];
+    // clear any previous mark
+    if (qDiv) qDiv.classList.remove("correct", "wrong");
+
+    if (selected) {
+      if (selected.value === item.answer) {
+        score++;
+        if (qDiv) qDiv.classList.add("correct");
+      } else {
+        if (qDiv) qDiv.classList.add("wrong");
+      }
+    } else {
+      // unanswered - mark as wrong visually (optional)
+      if (qDiv) qDiv.classList.add("wrong");
+    }
+  });
+  resultsContainer.innerHTML = `✅ You scored ${score} out of ${quizData.length}.`;
+  // Optionally show a short message
+  if (score === quizData.length) {
+    resultsContainer.innerHTML += " Perfect! Well done.";
+  } else if (score >= quizData.length * 0.7) {
+    resultsContainer.innerHTML += " Great job — pretty strong performance.";
+  } else {
+    resultsContainer.innerHTML += " Keep practicing!";
+  }
+}
+
+// small helper to escape HTML in option text (avoid breaking HTML)
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+// initialize
+buildQuiz();
+submitButton.addEventListener("click", showResults);
